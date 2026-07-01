@@ -6,12 +6,25 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "start": "pnpm db:migrate && node dist/server/entry.mjs",
+    "build": "astro build"
   },
   "dependencies": {
-    "astro": "^7.0.4"
+    "@astrojs/node": "^11.0.0",
+    "@lucide/astro": "^1.22.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "astro": "^7.0.4",
+    "better-sqlite3": "^12.11.1",
+    "drizzle-orm": "^0.45.2",
+    "tailwindcss": "^4.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/better-sqlite3": "^7.6.13",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3"
   }
 }

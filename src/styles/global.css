@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ------------------------------
+   Tailwind theme
+-------------------------------- */
+
+@theme {
+  --color-burgundy: #780116;
+  --color-sunflower: #f7b538;
+  --color-ochre: #db7c26;
+  --color-paprika: #d8572a;
+  --color-flag-red: #c32f27;
+}
+
+/* ------------------------------
+   Design tokens
+-------------------------------- */
+
+:root {
+  --background: #fffaf4;
+  --surface: #ffffff;
+  --surface-alt: #f8f5f0;
+
+  --foreground: #2b1e1b;
+  --muted: #74655f;
+
+  --border: #e8ddd3;
+
+  --primary: #780116;
+  --primary-hover: #610113;
+
+  --accent: #f7b538;
+  --accent-hover: #e79a0a;
+
+  --link: #d8572a;
+
+  --warning: #db7c26;
+  --danger: #c32f27;
+
+  --shadow: rgb(120 1 22 / 0.08);
+}
+
+.dark {
+  --background: #1b1212;
+  --surface: #261818;
+  --surface-alt: #321d1d;
+
+  --foreground: #f7efe8;
+  --muted: #c8b6ae;
+
+  --border: #4b2a2a;
+
+  --primary: #fd6681;
+  --primary-hover: #fd1943;
+
+  --accent: #fad287;
+  --accent-hover: #f7b538;
+
+  --link: #e89c80;
+
+  --warning: #eab17b;
+  --danger: #e47b75;
+
+  --shadow: rgb(0 0 0 / 0.3);
+}
+
+/* ------------------------------
+   Base
+-------------------------------- */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold tracking-tight;
+    color: var(--foreground);
+  }
+
+  a {
+    color: var(--link);
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    color: var(--primary);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  hr {
+    border-color: var(--border);
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--foreground);
+  }
+}
+
+/* ------------------------------
+   Components
+-------------------------------- */
+
+@layer components {
+  .card {
+    @apply rounded-xl border p-5 shadow-sm;
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    color: #2b1e1b;
+  }
+
+  .btn-accent:hover {
+    background: var(--accent-hover);
+  }
+
+  .input {
+    @apply w-full rounded-lg border px-3 py-2 outline-none;
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .input:focus {
+    border-color: var(--primary);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .divider {
+    border-color: var(--border);
+  }
+}

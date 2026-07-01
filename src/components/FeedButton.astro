@@ -1,0 +1,94 @@
+---
+import { Rss } from "@lucide/astro";
+
+const id = "add-feed-dialog";
+---
+
+<button id="open-dialog" class="btn btn-primary">
+  <Rss class="inline size-4" />
+  <span>Add Feed</span>
+</button>
+
+<dialog
+  id={id}
+  class="rounded-xl p-0 backdrop:bg-black/40 open:fixed open:top-1/2 open:left-1/2 -translate-1/2"
+>
+  <form id="feed-form" class="card w-96 flex flex-col gap-3 justify-around">
+    <h2 class="mb-4 text-xl font-semibold w-full">Add Feed</h2>
+
+    <input
+      type="text"
+      name="title"
+      id="feed-title"
+      class="input"
+      placeholder="Title"
+      required
+    />
+
+    <input
+      id="feed-url"
+      class="input"
+      name="url"
+      type="url"
+      placeholder="https://example.com/feed.xml"
+      required
+    />
+
+    <select
+      class="input hover:cursor-pointer"
+      id="feed-category"
+      name="category"
+      form="feed-form"
+    >
+      <option class="" value="uncategorized" selected>Uncategorzied</option>
+      <option class="" value="Tech">Technology</option>
+      <option class="" value="News">News</option>
+      <option class="" value="Sports">Sports</option>
+    </select>
+
+    <div class="mt-6 flex justify-end gap-2">
+      <button type="button" id="cancel-btn" class="btn"> Cancel </button>
+
+      <button type="submit" class="btn btn-primary"> Add </button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const dialog = document.getElementById(
+    "add-feed-dialog",
+  ) as HTMLDialogElement;
+  const openButton = document.getElementById(
+    "open-dialog",
+  ) as HTMLButtonElement;
+  const cancelButton = document.getElementById(
+    "cancel-btn",
+  ) as HTMLButtonElement;
+  const form = document.getElementById("feed-form") as HTMLFormElement;
+
+  openButton?.addEventListener("click", () => {
+    dialog?.showModal();
+  });
+
+  cancelButton?.addEventListener("click", () => {
+    dialog?.close();
+  });
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+
+    console.log("Feed Form data:", Object.fromEntries(formData.entries()));
+
+    // TODO: Add data to feed table
+
+    dialog?.close();
+
+    form.reset();
+  });
+
+  dialog?.addEventListener("close", () => {
+    form?.reset();
+  });
+</script>
