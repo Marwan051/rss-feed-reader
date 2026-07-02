@@ -3,7 +3,6 @@
 /* ------------------------------
    Tailwind theme
 -------------------------------- */
-
 @theme {
   --color-burgundy: #780116;
   --color-sunflower: #f7b538;
@@ -15,62 +14,116 @@
 /* ------------------------------
    Design tokens
 -------------------------------- */
-
 :root {
+  /* Surfaces */
   --background: #fffaf4;
   --surface: #ffffff;
   --surface-alt: #f8f5f0;
+  --surface-raised: #ffffff;
 
+  /* Text */
   --foreground: #2b1e1b;
   --muted: #74655f;
+  --muted-light: #a89890;
 
+  /* Borders */
   --border: #e8ddd3;
+  --border-strong: #d0c3b6;
 
-  --primary: #780116;
-  --primary-hover: #610113;
+  /* Primary — Paprika */
+  --primary: #d8572a;
+  --primary-hover: #bb4519;
+  --primary-active: #a03712;
+  --primary-subtle: #fef1ec;
 
+  /* Accent — Sunflower */
   --accent: #f7b538;
-  --accent-hover: #e79a0a;
+  --accent-hover: #e09a10;
+  --accent-active: #c98300;
+  --accent-subtle: #fffbee;
 
+  /* Semantic */
   --link: #d8572a;
-
+  --link-visited: #9e3c16;
   --warning: #db7c26;
+  --warning-subtle: #fef6ed;
   --danger: #c32f27;
+  --danger-subtle: #fef0ef;
+  --success: #2a7a4e;
+  --success-subtle: #edf7f2;
 
-  --shadow: rgb(120 1 22 / 0.08);
+  /* Shadows — warm paprika tint */
+  --shadow-sm: 0 1px 3px rgb(43 30 27 / 0.06), 0 1px 2px rgb(43 30 27 / 0.04);
+  --shadow-md: 0 4px 14px rgb(216 87 42 / 0.1), 0 2px 4px rgb(43 30 27 / 0.05);
+  --shadow-lg:
+    0 12px 32px rgb(216 87 42 / 0.14), 0 4px 8px rgb(43 30 27 / 0.07);
+  --shadow: rgb(216 87 42 / 0.1);
+
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark {
+  /* Surfaces */
   --background: #1b1212;
   --surface: #261818;
   --surface-alt: #321d1d;
+  --surface-raised: #3a2222;
 
+  /* Text */
   --foreground: #f7efe8;
   --muted: #c8b6ae;
+  --muted-light: #9a8a82;
 
+  /* Borders */
   --border: #4b2a2a;
+  --border-strong: #6a3535;
 
-  --primary: #fd6681;
-  --primary-hover: #fd1943;
+  /* Primary — lighter paprika for dark bg */
+  --primary: #f07052;
+  --primary-hover: #f58060;
+  --primary-active: #fa9070;
+  --primary-subtle: #2f1a14;
 
+  /* Accent */
   --accent: #fad287;
   --accent-hover: #f7b538;
+  --accent-active: #f0a020;
+  --accent-subtle: #2a1f08;
 
+  /* Semantic */
   --link: #e89c80;
-
+  --link-visited: #d4816a;
   --warning: #eab17b;
+  --warning-subtle: #291708;
   --danger: #e47b75;
+  --danger-subtle: #27100f;
+  --success: #5fba8a;
+  --success-subtle: #0d2218;
 
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.15);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.3), 0 2px 4px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.4), 0 4px 8px rgb(0 0 0 / 0.25);
   --shadow: rgb(0 0 0 / 0.3);
 }
 
 /* ------------------------------
    Base
 -------------------------------- */
-
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -78,6 +131,9 @@
     background: var(--background);
     color: var(--foreground);
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.6;
+    /* Nicer number glyphs and ligatures in Inter */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   h1,
@@ -86,15 +142,42 @@
   h4 {
     @apply font-semibold tracking-tight;
     color: var(--foreground);
+    line-height: 1.25;
   }
 
+  h1 {
+    font-size: 2.25rem;
+  }
+  h2 {
+    font-size: 1.75rem;
+  }
+  h3 {
+    font-size: 1.375rem;
+  }
+  h4 {
+    font-size: 1.125rem;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+
+  /* Links — underline fades in on hover */
   a {
     color: var(--link);
-    transition: color 150ms ease;
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition:
+      color var(--t-fast),
+      text-decoration-color var(--t-fast);
   }
-
   a:hover {
     color: var(--primary);
+    text-decoration-color: currentColor;
+  }
+  a:visited {
+    color: var(--link-visited);
   }
 
   button {
@@ -103,62 +186,241 @@
 
   hr {
     border-color: var(--border);
+    margin-block: 1.5rem;
   }
 
   ::selection {
     background: var(--accent);
     color: var(--foreground);
   }
+
+  /* Keyboard focus ring — paprika, only visible via keyboard */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Subtle custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--surface-alt);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  /* Honour reduced-motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 /* ------------------------------
    Components
 -------------------------------- */
-
 @layer components {
+  /* ---- Cards ---- */
   .card {
-    @apply rounded-xl border p-5 shadow-sm;
+    @apply rounded-xl border p-5;
     background: var(--surface);
     border-color: var(--border);
-    box-shadow: 0 8px 24px var(--shadow);
+    box-shadow: var(--shadow-md);
+    transition:
+      box-shadow var(--t),
+      transform var(--t);
+  }
+  /* Opt-in hover lift; add .card-hover alongside .card */
+  .card-hover:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  .card-flat {
+    box-shadow: none;
   }
 
+  /* ---- Buttons — base ---- */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium;
+    transition:
+      background var(--t-fast),
+      color var(--t-fast),
+      box-shadow var(--t-fast),
+      transform var(--t-fast),
+      border-color var(--t-fast);
+    user-select: none;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+  }
+  /* Gentle press effect */
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
+  /* ---- Button variants ---- */
   .btn-primary {
     background: var(--primary);
     color: white;
+    box-shadow:
+      0 1px 3px var(--shadow),
+      inset 0 1px 0 rgb(255 255 255 / 0.12);
   }
-
   .btn-primary:hover {
     background: var(--primary-hover);
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .btn-primary:active {
+    background: var(--primary-active);
+    box-shadow: none;
   }
 
   .btn-accent {
     background: var(--accent);
     color: #2b1e1b;
+    box-shadow: 0 1px 3px rgb(120 1 22 / 0.08);
   }
-
   .btn-accent:hover {
     background: var(--accent-hover);
+    box-shadow: 0 3px 10px rgb(120 1 22 / 0.12);
+  }
+  .btn-accent:active {
+    background: var(--accent-active);
+    box-shadow: none;
   }
 
+  .btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-outline:hover {
+    background: var(--primary-subtle);
+    border-color: var(--primary-hover);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--foreground);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-alt);
+    color: var(--primary);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 1px 3px rgb(195 47 39 / 0.15);
+  }
+  .btn-danger:hover {
+    filter: brightness(0.9);
+    box-shadow: 0 3px 8px rgb(195 47 39 / 0.25);
+  }
+
+  /* ---- Button sizes ---- */
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-md gap-1.5;
+  }
+  .btn-lg {
+    @apply px-6 py-3 text-base rounded-xl;
+  }
+
+  /* ---- Inputs ---- */
   .input {
-    @apply w-full rounded-lg border px-3 py-2 outline-none;
+    @apply w-full rounded-lg border px-3 py-2 text-sm;
     background: var(--surface);
     border-color: var(--border);
+    color: var(--foreground);
+    outline: none;
+    line-height: 1.5;
+    transition:
+      border-color var(--t-fast),
+      box-shadow var(--t-fast);
   }
-
+  .input::placeholder {
+    color: var(--muted-light);
+  }
+  .input:hover:not(:focus):not(:disabled) {
+    border-color: var(--border-strong);
+  }
   .input:focus {
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgb(216 87 42 / 0.12);
+  }
+  .input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--surface-alt);
+  }
+  .input-error {
+    border-color: var(--danger) !important;
+  }
+  .input-error:focus {
+    box-shadow: 0 0 0 3px rgb(195 47 39 / 0.12) !important;
   }
 
-  .muted {
+  /* ---- Labels ---- */
+  .label {
+    @apply block text-sm font-medium mb-1;
+    color: var(--foreground);
+  }
+  .label-hint {
+    @apply text-xs mt-1;
     color: var(--muted);
   }
 
+  /* ---- Badges ---- */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-primary {
+    background: var(--primary-subtle);
+    color: var(--primary);
+    border: 1px solid rgb(216 87 42 / 0.18);
+  }
+  .badge-accent {
+    background: var(--accent-subtle);
+    color: #7a5200;
+    border: 1px solid rgb(247 181 56 / 0.28);
+  }
+  .badge-warning {
+    background: var(--warning-subtle);
+    color: var(--warning);
+  }
+  .badge-danger {
+    background: var(--danger-subtle);
+    color: var(--danger);
+  }
+  .badge-success {
+    background: var(--success-subtle);
+    color: var(--success);
+  }
+
+  /* ---- Utilities ---- */
+  .muted {
+    color: var(--muted);
+  }
   .divider {
     border-color: var(--border);
   }

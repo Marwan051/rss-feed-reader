@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "312bb4c1-2558-4499-8e4d-6da40d0259a5",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "8b987cef-3c05-48bf-a4e6-410bcd6fc66f",
+  "prevId": "312bb4c1-2558-4499-8e4d-6da40d0259a5",
   "tables": {
     "bookmarks": {
       "name": "bookmarks",
@@ -156,6 +156,13 @@
         }
       },
       "indexes": {
+        "items_guid_unique": {
+          "name": "items_guid_unique",
+          "columns": [
+            "guid"
+          ],
+          "isUnique": true
+        },
         "items_feed_guid_unique": {
           "name": "items_feed_guid_unique",
           "columns": [

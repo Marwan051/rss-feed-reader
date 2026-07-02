@@ -25,11 +25,11 @@ export const items = sqliteTable(
     feedId: integer("feed_id")
       .notNull()
       .references(() => feeds.id, { onDelete: "cascade" }),
-    guid: text("guid").notNull(),
+    guid: text("guid").notNull().unique(),
     title: text("title"),
     link: text("link"),
     content: text("content"),
-    snippet: text("snippet"),
+    contentSnippet: text("contentSnippet"),
     pubDate: text("pub_date"),
   },
   (t) => [uniqueIndex("items_feed_guid_unique").on(t.feedId, t.guid)],

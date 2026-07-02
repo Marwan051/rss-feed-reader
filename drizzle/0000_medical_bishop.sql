@@ -20,7 +20,7 @@ CREATE TABLE `items` (
 	`title` text,
 	`link` text,
 	`content` text,
-	`snippet` text,
+	`contentSnippet` text,
 	`pub_date` text,
 	FOREIGN KEY (`feed_id`) REFERENCES `feeds`(`id`) ON UPDATE no action ON DELETE cascade
 );

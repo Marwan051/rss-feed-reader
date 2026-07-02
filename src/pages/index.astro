@@ -7,4 +7,16 @@ import FeedButton from "../components/FeedButton.astro";
 
 <Layout>
   <FeedButton />
+  <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
 </Layout>
+<script>
+  import { actions } from "astro:actions";
+
+  const updateFeedsButton = document.getElementById(
+    "update-feeds-btn",
+  ) as HTMLButtonElement;
+
+  updateFeedsButton.addEventListener("click", async () => {
+    await actions.updateFeedItems();
+  });
+</script>

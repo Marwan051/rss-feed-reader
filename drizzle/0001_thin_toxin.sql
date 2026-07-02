@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `items_guid_unique` ON `items` (`guid`);

@@ -33,28 +33,40 @@ const id = "add-feed-dialog";
       placeholder="https://example.com/feed.xml"
       required
     />
-
-    <select
-      class="input hover:cursor-pointer"
-      id="feed-category"
-      name="category"
-      form="feed-form"
-    >
-      <option class="" value="uncategorized" selected>Uncategorzied</option>
-      <option class="" value="Tech">Technology</option>
-      <option class="" value="News">News</option>
-      <option class="" value="Sports">Sports</option>
-    </select>
+    <div>
+      <select
+        class="input hover:cursor-pointer overflow-y-scroll"
+        id="feed-category"
+        name="category"
+        form="feed-form"
+      >
+        <option class="" value="uncategorized" selected>Uncategorzied</option>
+        <option class="" value="science_and_tech">Science and Technology</option
+        >
+        <option class="" value="news">News</option>
+        <option class="" value="sports">Sports</option>
+        <option class="" value="business_and_finance"
+          >Business and Finance</option
+        >
+        <option class="" value="entertainment">Entertainment</option>
+        <option class="" value="food">Food</option>
+        <option class="" value="health_and_fitness">Health and Fitness</option>
+      </select>
+    </div>
 
     <div class="mt-6 flex justify-end gap-2">
       <button type="button" id="cancel-btn" class="btn"> Cancel </button>
 
-      <button type="submit" class="btn btn-primary"> Add </button>
+      <button type="submit" id="submit-btn" class="btn btn-primary">
+        Add
+      </button>
     </div>
   </form>
 </dialog>
 
 <script>
+  import { actions } from "astro:actions";
+
   const dialog = document.getElementById(
     "add-feed-dialog",
   ) as HTMLDialogElement;
@@ -64,7 +76,21 @@ const id = "add-feed-dialog";
   const cancelButton = document.getElementById(
     "cancel-btn",
   ) as HTMLButtonElement;
+  const submitButton = document.getElementById(
+    "submit-btn",
+  ) as HTMLButtonElement;
   const form = document.getElementById("feed-form") as HTMLFormElement;
+
+  let loading = false;
+
+  const toggleLoading = () => {
+    if (loading) {
+      submitButton.setAttribute("disabled", "");
+      cancelButton.setAttribute("disabled", "");
+    }
+    submitButton.removeAttribute("disabled");
+    cancelButton.removeAttribute("disabled");
+  };
 
   openButton?.addEventListener("click", () => {
     dialog?.showModal();
@@ -74,15 +100,39 @@ const id = "add-feed-dialog";
     dialog?.close();
   });
 
-  form?.addEventListener("submit", (event) => {
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    loading = true;
+    toggleLoading();
     const formData = new FormData(form);
+    const title = formData.get("title");
+    const url = formData.get("url");
+    const category = formData.get("category");
 
-    console.log("Feed Form data:", Object.fromEntries(formData.entries()));
+    if (typeof title !== "string" || typeof url !== "string") {
+      return;
+    }
 
-    // TODO: Add data to feed table
+    const result = await actions.addFeed({
+      title,
+      url,
+      category: typeof category === "string" ? category : undefined,
+    });
 
+    if (result.error) {
+      if (result.error.code == "CONFLICT") {
+        alert(result.error.message);
+        return;
+      }
+
+      alert("Failed to add the feed. Please, try again.");
+      console.error("Failed to add feed:", result.error.message);
+      return;
+    }
+
+    loading = false;
+    toggleLoading();
     dialog?.close();
 
     form.reset();
