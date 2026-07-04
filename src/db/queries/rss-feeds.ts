@@ -1,14 +1,9 @@
+import { eq } from "drizzle-orm";
 import { db } from "../index";
 import { feeds, items } from "../schema";
 
 export const getFeeds = () => {
-  return db
-    .select({
-      id: feeds.id,
-      url: feeds.url,
-    })
-    .from(feeds)
-    .all();
+  return db.select().from(feeds).all();
 };
 
 export const AddFeed = (title: string, url: string, category?: string) => {
@@ -49,4 +44,8 @@ export const insertFeedItems = (feedItems: NewItem[]) => {
     .values(rows)
     .onConflictDoNothing({ target: items.guid })
     .run();
+};
+
+export const removeFeed = async (feedId: number) => {
+  return await db.delete(feeds).where(eq(feeds.id, feedId));
 };

@@ -1,6 +1,11 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
-import { AddFeed, getFeeds, insertFeedItems } from "../db/queries/rss-feeds";
+import {
+  AddFeed,
+  getFeeds,
+  insertFeedItems,
+  removeFeed,
+} from "../db/queries/rss-feeds";
 import Parser from "rss-parser";
 import pLimit from "p-limit";
 
@@ -16,6 +21,20 @@ type FeedResult =
   | { success: false; id: number; url: string; error: unknown };
 
 export const server = {
+  getFeeds: defineAction({
+    handler: () => {
+      try {
+        return getFeeds();
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Unknown database error";
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to add feed: ${message}`,
+        });
+      }
+    },
+  }),
   addFeed: defineAction({
     input: z.object({
       title: z.string().min(1, "Title is required"),
@@ -95,10 +114,23 @@ export const server = {
         try {
           insertFeedItems(feedItemsData);
         } catch (error) {
+          // TODO: Handle error handling
           console.error("Error inserting data ", error);
           return;
         }
       });
+    },
+  }),
+  removeFeed: defineAction({
+    input: z.object({ id: z.number() }),
+    handler: (input) => {
+      try {
+        removeFeed(input.id);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error inserting data ", error);
+        return;
+      }
     },
   }),
 };

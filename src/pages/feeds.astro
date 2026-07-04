@@ -1,0 +1,43 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FeedEntry from "../components/FeedEntry.astro";
+import { getFeeds } from "../db/queries/rss-feeds";
+const feeds = getFeeds();
+---
+
+<Layout class="p-4 flex flex-col gap-3">
+  {
+    feeds.map((feed) => {
+      return (
+        <FeedEntry
+          feedID={feed.id}
+          feedTitle={feed.title}
+          feedUrl={feed.url}
+          feedCategory={feed.category ?? ""}
+        />
+      );
+    })
+  }
+
+  <script>
+    import { actions } from "astro:actions";
+
+    const removeButtons =
+      document.querySelectorAll<HTMLButtonElement>("[data-feed-id]");
+
+    removeButtons?.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const feedId = button.dataset.feedId;
+        console.log(feedId);
+        if (feedId) {
+          const { error } = await actions.removeFeed({ id: Number(feedId) });
+          if (error) {
+            // TODO: feed failed to be removed logic
+            alert("Failed to remove feed");
+            location.reload();
+          }
+        }
+      });
+    });
+  </script>
+</Layout>

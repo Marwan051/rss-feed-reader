@@ -1,12 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import FeedButton from "../components/FeedButton.astro";
+import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-  <FeedButton />
+  <AddFeedButton />
   <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
 </Layout>
 <script>
@@ -16,7 +16,7 @@ import FeedButton from "../components/FeedButton.astro";
     "update-feeds-btn",
   ) as HTMLButtonElement;
 
-  updateFeedsButton.addEventListener("click", async () => {
+  updateFeedsButton?.addEventListener("click", async () => {
     await actions.updateFeedItems();
   });
 </script>
