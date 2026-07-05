@@ -4,7 +4,7 @@ import { Rss } from "@lucide/astro";
 const id = "add-feed-dialog";
 ---
 
-<button id="open-dialog" class="btn btn-primary">
+<button id="open-dialog" class="btn btn-primary p-1 h-10">
   <Rss class="inline size-4" />
   <span>Add Feed</span>
 </button>
@@ -136,6 +136,7 @@ const id = "add-feed-dialog";
     dialog?.close();
 
     form.reset();
+    location.reload();
   });
 
   dialog?.addEventListener("close", () => {

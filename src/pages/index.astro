@@ -1,13 +1,73 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
+import { getFeeds } from "../db/queries/rss-feeds";
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+
+type Feed = {
+  feedId: number;
+  feedName: string;
+  feedCategory: string;
+};
+
+const feeds = getFeeds();
+const dbCategories = [
+  ...new Set(
+    feeds
+      .map((feed) => feed.category)
+      .filter((category): category is string => category !== null),
+  ),
+];
+const mapCategoriesToVisuals: Record<string, string> = {
+  news: "News",
+  science_and_tech: "Science and Tech",
+  sports: "Sports",
+};
+
+type Category = {
+  key: string;
+  label: string;
+};
+const categories: Category[] = dbCategories.map((cat) => ({
+  key: cat,
+  label: mapCategoriesToVisuals[cat],
+}));
+console.log(categories);
 ---
 
 <Layout>
-  <AddFeedButton />
-  <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
+  <div class="w-full flex justify-end gap-4 p-3 items-center">
+    <AddFeedButton />
+    <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
+  </div>
+  <section class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 h-full w-full">
+    <!-- Feed/Category chooser -->
+    <section class="h-full bg-amber-500">
+      <ul class="">
+        {
+          categories.map((cat) => (
+            <li>
+              <h3>{cat.label}</h3>
+              <ul class="pl-6">
+                {feeds
+                  .filter((feed) => feed.category == cat.key)
+                  .map((feed) => {
+                    return <li>{feed.title}</li>;
+                  })}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- Feed item chooser -->
+    <section class="h-full bg-blue-700">a</section>
+
+    <!-- Feed item viewer -->
+    <section class="h-full bg-emerald-500">d</section>
+  </section>
 </Layout>
 <script>
   import { actions } from "astro:actions";
@@ -19,4 +79,58 @@ import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
   updateFeedsButton?.addEventListener("click", async () => {
     await actions.updateFeedItems();
   });
+
+  // Feed state mangment
+  type FeedSelection =
+    | { kind: "all" }
+    | { kind: "category"; categoryId: number }
+    | {
+        kind: "feed";
+        feedId: number;
+        itemIdHighlight?: number;
+      };
+
+  type ItemChosen = {
+    itemId?: number;
+  };
+
+  let state = {
+    selection: { kind: "all" } as FeedSelection,
+    selectedItem: null as ItemChosen | null,
+  };
+
+  const chooseAll = () => {
+    state = {
+      ...state,
+      selection: { kind: "all" },
+    };
+  };
+
+  const chooseCategory = (categoryId: number) => {
+    state = {
+      ...state,
+      selection: { kind: "category", categoryId: categoryId },
+    };
+  };
+
+  const chooseFeed = (feedId: number) => {
+    state = {
+      ...state,
+      selection: { kind: "feed", feedId },
+    };
+  };
+  const chooseItem = (item?: ItemChosen) => {
+    if (!item) {
+      state = {
+        ...state,
+        selectedItem: null,
+      };
+      return;
+    }
+
+    state = {
+      ...state,
+      selectedItem: item,
+    };
+  };
 </script>
