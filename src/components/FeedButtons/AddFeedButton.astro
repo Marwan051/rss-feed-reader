@@ -1,5 +1,6 @@
 ---
 import { Rss } from "@lucide/astro";
+import { mapCategoriesToVisuals } from "../../lib/constants";
 
 const id = "add-feed-dialog";
 ---
@@ -40,17 +41,10 @@ const id = "add-feed-dialog";
         name="category"
         form="feed-form"
       >
-        <option class="" value="uncategorized" selected>Uncategorzied</option>
-        <option class="" value="science_and_tech">Science and Technology</option
-        >
-        <option class="" value="news">News</option>
-        <option class="" value="sports">Sports</option>
-        <option class="" value="business_and_finance"
-          >Business and Finance</option
-        >
-        <option class="" value="entertainment">Entertainment</option>
-        <option class="" value="food">Food</option>
-        <option class="" value="health_and_fitness">Health and Fitness</option>
+        <option class="" value="uncategorized" selected>Uncategorized</option>
+        {Object.entries(mapCategoriesToVisuals).map(([value, label]) => (
+          <option class="" value={value}>{label}</option>
+        ))}
       </select>
     </div>
 
@@ -136,7 +130,7 @@ const id = "add-feed-dialog";
     dialog?.close();
 
     form.reset();
-    location.reload();
+    document.dispatchEvent(new CustomEvent("feed-added", { bubbles: true }));
   });
 
   dialog?.addEventListener("close", () => {
