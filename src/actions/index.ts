@@ -2,6 +2,9 @@ import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 import {
   AddFeed,
+  getAllFeedItems,
+  getFeedItemsByCategory,
+  getFeedItemsByFeedId,
   getFeeds,
   insertFeedItems,
   removeFeed,
@@ -63,9 +66,11 @@ export const server = {
     },
   }),
 
-  updateFeedItems: defineAction({
+  updateAllFeedItems: defineAction({
     handler: async () => {
-      const parser = new Parser();
+      const parser = new Parser({
+        maxRedirects: 50,
+      });
       const feeds = getFeeds();
       const limit = pLimit({ concurrency: 5 });
       const feedItems = await Promise.all(
@@ -106,11 +111,10 @@ export const server = {
               link: item.link,
               content: item.content || "",
               contentSnippet: item.contentSnippet || "",
-              pubDate: item.pubDate || "",
+              pubDate: item.isoDate || "",
             },
           ];
         });
-        console.log(feedItemsData);
         try {
           insertFeedItems(feedItemsData);
         } catch (error) {
@@ -129,6 +133,45 @@ export const server = {
       } catch (error) {
         // TODO: Handle error handling
         console.error("Error inserting data ", error);
+        return;
+      }
+    },
+  }),
+  getAllFeedItems: defineAction({
+    handler: () => {
+      try {
+        return getAllFeedItems();
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error retriving data ", error);
+        return;
+      }
+    },
+  }),
+  getFeedItemsByCategory: defineAction({
+    input: z.object({
+      category: z.string(),
+    }),
+    handler(input) {
+      try {
+        return getFeedItemsByCategory(input.category);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error retriving data ", error);
+        return;
+      }
+    },
+  }),
+  getFeedItemsByFeedId: defineAction({
+    input: z.object({
+      feedId: z.number(),
+    }),
+    handler(input) {
+      try {
+        return getFeedItemsByFeedId(input.feedId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error retriving data ", error);
         return;
       }
     },

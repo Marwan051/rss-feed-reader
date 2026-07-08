@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
 import { feeds, items } from "../schema";
 
 export const getFeeds = () => {
-  return db.select().from(feeds).all();
+  return db.select().from(feeds).orderBy(feeds.category).all();
 };
 
 export const AddFeed = (title: string, url: string, category?: string) => {
@@ -48,4 +48,38 @@ export const insertFeedItems = (feedItems: NewItem[]) => {
 
 export const removeFeed = async (feedId: number) => {
   return await db.delete(feeds).where(eq(feeds.id, feedId));
+};
+
+export const getAllFeedItems = () => {
+  return db
+    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .from(items)
+    .orderBy(desc(items.pubDate), items.feedId)
+    .all();
+};
+
+export const getFeedItemsByCategory = (category: string) => {
+  return db
+    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .from(items)
+    .where(
+      inArray(
+        items.feedId,
+        db
+          .select({ id: feeds.id })
+          .from(feeds)
+          .where(eq(feeds.category, category)),
+      ),
+    )
+    .orderBy(desc(items.pubDate), items.feedId)
+    .all();
+};
+
+export const getFeedItemsByFeedId = (feedId: number) => {
+  return db
+    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .from(items)
+    .where(eq(items.feedId, feedId))
+    .orderBy(desc(items.pubDate))
+    .all();
 };

@@ -1,11 +1,16 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
-import { getFeeds } from "../db/queries/rss-feeds";
-import { extractCategories } from "../lib/categories";
+import { getFeeds, getAllFeedItems } from "../db/queries/rss-feeds";
+import { Sidebar } from "../components/Bars/SideBar";
+import { MiddleBar } from "../components/Bars/MiddleBar";
 
 const feeds = getFeeds();
-const categories = extractCategories(feeds);
+const initialItems = getAllFeedItems().map((item) => ({
+  guid: item.guid,
+  title: item.title ?? "No title",
+  pubDate: new Date(item.pubDate!),
+}));
 ---
 
 <Layout>
@@ -13,29 +18,18 @@ const categories = extractCategories(feeds);
     <AddFeedButton />
     <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
   </div>
-  <section class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 h-full w-full">
+  <section
+    class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 flex-1 min-h-0 w-full"
+  >
     <!-- Feed/Category chooser -->
     <section class="h-full bg-amber-500" id="side-bar">
-      <ul class="">
-        {
-          categories.map((cat) => (
-            <li>
-              <h3>{cat.label}</h3>
-              <ul class="pl-6">
-                {feeds
-                  .filter((feed) => feed.category == cat.key)
-                  .map((feed) => {
-                    return <li>{feed.title}</li>;
-                  })}
-              </ul>
-            </li>
-          ))
-        }
-      </ul>
+      <Sidebar initialFeeds={feeds} client:load />
     </section>
 
     <!-- Feed item chooser -->
-    <section class="h-full bg-blue-700">a</section>
+    <section class="h-full bg-blue-700">
+      <MiddleBar initialItems={initialItems} client:load />
+    </section>
 
     <!-- Feed item viewer -->
     <section class="h-full bg-emerald-500">d</section>
@@ -43,113 +37,14 @@ const categories = extractCategories(feeds);
 </Layout>
 <script>
   import { actions } from "astro:actions";
-  import { extractCategories } from "../lib/categories";
 
   const updateFeedsButton = document.getElementById(
     "update-feeds-btn",
   ) as HTMLButtonElement;
 
-  const sideBar = document.getElementById(
-    "side-bar",
-  ) as HTMLTableSectionElement;
-
   updateFeedsButton?.addEventListener("click", async () => {
-    await actions.updateFeedItems();
+    await actions.updateAllFeedItems();
   });
 
-  // Add new feed to list
-  const updateFeeds = async () => {
-    if (!sideBar) {
-      console.log("sidebar not found");
-      return;
-    }
-    const feedsRequest = await actions.getFeeds();
-    if (feedsRequest.error) {
-      console.error(feedsRequest.error.message);
-      return;
-    }
-    const feeds = feedsRequest.data;
-    const categories = extractCategories(feeds);
-
-    const fragment = document.createDocumentFragment();
-    const fullUl = document.createElement("ul");
-    for (const category of categories) {
-      const categoryUl = document.createElement("ul");
-      for (const feed of feeds) {
-        if (feed.category === category.key) {
-          const li = document.createElement("li");
-          li.innerText = feed.title;
-          li.style = "padding-left: calc(var(--spacing) * 6);";
-          categoryUl.appendChild(li);
-        }
-      }
-      if (categoryUl.hasChildNodes()) {
-        const categoryHead = document.createElement("h3");
-        categoryHead.innerText = category.label;
-        categoryUl.prepend(categoryHead);
-        fullUl.appendChild(categoryUl);
-      }
-    }
-    fragment.appendChild(fullUl);
-
-    sideBar.replaceChildren(fragment);
-  };
-
-  document.addEventListener("feed-added", async () => {
-    await updateFeeds();
-  });
-
-  // Feed state mangment
-  type FeedSelection =
-    | { kind: "all" }
-    | { kind: "category"; categoryId: number }
-    | {
-        kind: "feed";
-        feedId: number;
-        itemIdHighlight?: number;
-      };
-
-  type ItemChosen = {
-    itemId?: number;
-  };
-
-  let state = {
-    selection: { kind: "all" } as FeedSelection,
-    selectedItem: null as ItemChosen | null,
-  };
-
-  const chooseAll = () => {
-    state = {
-      ...state,
-      selection: { kind: "all" },
-    };
-  };
-
-  const chooseCategory = (categoryId: number) => {
-    state = {
-      ...state,
-      selection: { kind: "category", categoryId: categoryId },
-    };
-  };
-
-  const chooseFeed = (feedId: number) => {
-    state = {
-      ...state,
-      selection: { kind: "feed", feedId },
-    };
-  };
-  const chooseItem = (item?: ItemChosen) => {
-    if (!item) {
-      state = {
-        ...state,
-        selectedItem: null,
-      };
-      return;
-    }
-
-    state = {
-      ...state,
-      selectedItem: item,
-    };
-  };
+  document.addEventListener("feed-selected", (event) => {});
 </script>

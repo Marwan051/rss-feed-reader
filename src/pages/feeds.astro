@@ -28,7 +28,6 @@ const feeds = getFeeds();
     removeButtons?.forEach((button) => {
       button.addEventListener("click", async () => {
         const feedId = button.dataset.feedId;
-        console.log(feedId);
         if (feedId) {
           const { error } = await actions.removeFeed({ id: Number(feedId) });
           if (error) {
