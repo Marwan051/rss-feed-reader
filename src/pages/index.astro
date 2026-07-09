@@ -4,10 +4,11 @@ import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
 import { getFeeds, getAllFeedItems } from "../db/queries/rss-feeds";
 import { Sidebar } from "../components/Bars/SideBar";
 import { MiddleBar } from "../components/Bars/MiddleBar";
+import { FeedViewer } from "../components/FeedViewer";
 
 const feeds = getFeeds();
 const initialItems = getAllFeedItems().map((item) => ({
-  guid: item.guid,
+  itemId: item.itemId,
   title: item.title ?? "No title",
   pubDate: new Date(item.pubDate!),
 }));
@@ -32,7 +33,9 @@ const initialItems = getAllFeedItems().map((item) => ({
     </section>
 
     <!-- Feed item viewer -->
-    <section class="h-full bg-emerald-500">d</section>
+    <section class="h-full bg-emerald-500">
+      <FeedViewer client:load />
+    </section>
   </section>
 </Layout>
 <script>

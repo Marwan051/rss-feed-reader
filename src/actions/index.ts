@@ -3,6 +3,7 @@ import { ActionError, defineAction } from "astro:actions";
 import {
   AddFeed,
   getAllFeedItems,
+  getFeedItemById,
   getFeedItemsByCategory,
   getFeedItemsByFeedId,
   getFeeds,
@@ -176,4 +177,15 @@ export const server = {
       }
     },
   }),
+  getFeedItemById: defineAction({
+    input: z.object({itemId: z.number()}), handler: (input) => {
+      try {
+        return getFeedItemById(input.itemId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error retriving data ", error);
+        return;
+      }
+    }
+  })
 };

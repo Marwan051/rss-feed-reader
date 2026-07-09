@@ -4,7 +4,7 @@ import type { Selection } from "./SideBar";
 import { mapCategoriesToVisuals } from "../../lib/constants";
 
 export type FeedItem = {
-  guid: string;
+  itemId: number;
   title: string;
   pubDate: Date;
 };
@@ -15,14 +15,14 @@ interface Props {
 
 declare global {
   interface DocumentEventMap {
-    "feed-item-selected": CustomEvent<{ guid: string; title: string }>;
+    "feed-item-selected": CustomEvent<{ itemId: number; title: string }>;
   }
 }
 
 export const MiddleBar = ({ initialItems }: Props) => {
   const [feedItems, setFeedItems] = useState<FeedItem[]>(initialItems);
   const [selected, setSelected] = useState<Selection>({ kind: "all" });
-  const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const scrollAreaRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
             if (data && !error) {
               setFeedItems(
                 data.map((item) => ({
-                  guid: item.guid,
+                  itemId: item.itemId,
                   title: item.title ?? "No title",
                   pubDate: new Date(item.pubDate!),
                 })),
@@ -51,7 +51,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
               if (data && !error) {
                 setFeedItems(
                   data.map((item) => ({
-                    guid: item.guid,
+                    itemId: item.itemId,
                     title: item.title ?? "No title",
                     pubDate: new Date(item.pubDate!),
                   })),
@@ -66,7 +66,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
               if (data && !error) {
                 setFeedItems(
                   data.map((item) => ({
-                    guid: item.guid,
+                    itemId: item.itemId,
                     title: item.title ?? "No title",
                     pubDate: new Date(item.pubDate!),
                   })),
@@ -100,13 +100,13 @@ export const MiddleBar = ({ initialItems }: Props) => {
       >
         {feedItems.map((item) => (
           <li
-            key={item.guid}
-            className={`${cls(selectedGuid === item.guid)} rounded p-2 bg-gray-400`}
+            key={item.itemId}
+            className={`${cls(selectedItemId === item.itemId)} rounded p-2 bg-gray-400`}
             onClick={() => {
-              setSelectedGuid(item.guid);
+              setSelectedItemId(item.itemId);
               document.dispatchEvent(
                 new CustomEvent("feed-item-selected", {
-                  detail: { guid: item.guid, title: item.title },
+                  detail: { itemId: item.itemId, title: item.title },
                 }),
               );
             }}

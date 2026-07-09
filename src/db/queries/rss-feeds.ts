@@ -52,7 +52,7 @@ export const removeFeed = async (feedId: number) => {
 
 export const getAllFeedItems = () => {
   return db
-    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate })
     .from(items)
     .orderBy(desc(items.pubDate), items.feedId)
     .all();
@@ -60,7 +60,7 @@ export const getAllFeedItems = () => {
 
 export const getFeedItemsByCategory = (category: string) => {
   return db
-    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate })
     .from(items)
     .where(
       inArray(
@@ -77,9 +77,14 @@ export const getFeedItemsByCategory = (category: string) => {
 
 export const getFeedItemsByFeedId = (feedId: number) => {
   return db
-    .select({ guid: items.guid, title: items.title, pubDate: items.pubDate })
+    .select({itemId:items.id, title: items.title, pubDate: items.pubDate })
     .from(items)
     .where(eq(items.feedId, feedId))
     .orderBy(desc(items.pubDate))
     .all();
 };
+
+
+export const getFeedItemById = (itemId:number) => {
+  return db.select().from(items).where(eq(items.id,itemId)).all()
+}
