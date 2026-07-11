@@ -15,25 +15,27 @@ const initialItems = getAllFeedItems().map((item) => ({
 ---
 
 <Layout>
-  <div class="w-full flex justify-end gap-4 p-3 items-center">
+  <div class="bg-surface w-full flex justify-end gap-4 p-3 items-center">
     <AddFeedButton />
-    <button class="primary-btn p-4" id="update-feeds-btn"> Update feed </button>
+    <button class="primary-btn p-4" id="update-feeds-btn">
+      Update feeds
+    </button>
   </div>
   <section
     class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 flex-1 min-h-0 w-full"
   >
     <!-- Feed/Category chooser -->
-    <section class="h-full bg-amber-500" id="side-bar">
+    <section class="h-full bg-bg" id="side-bar">
       <Sidebar initialFeeds={feeds} client:load />
     </section>
 
     <!-- Feed item chooser -->
-    <section class="h-full bg-blue-700">
+    <section class="h-full bg-surface-alt">
       <MiddleBar initialItems={initialItems} client:load />
     </section>
 
     <!-- Feed item viewer -->
-    <section class="h-full bg-emerald-500">
+    <section class="h-full bg-surface-raised">
       <FeedViewer client:load />
     </section>
   </section>
@@ -48,6 +50,4 @@ const initialItems = getAllFeedItems().map((item) => ({
   updateFeedsButton?.addEventListener("click", async () => {
     await actions.updateAllFeedItems();
   });
-
-  document.addEventListener("feed-selected", (event) => {});
 </script>

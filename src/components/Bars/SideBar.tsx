@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { actions } from "astro:actions";
 import { extractCategories } from "../../lib/categories";
+import type { FeedAdded } from "../FeedButtons/AddFeedButton.astro";
 
 interface Feed {
   id: number;
@@ -22,31 +23,36 @@ interface Props {
 declare global {
   interface DocumentEventMap {
     "feed-selected": CustomEvent<Selection>;
+    "feed-added": CustomEvent<FeedAdded>;
   }
 }
 
 export const Sidebar = ({ initialFeeds }: Props) => {
   const [feeds, setFeeds] = useState(initialFeeds);
   const [selected, setSelected] = useState<Selection>({ kind: "all" });
-  const categories = extractCategories(feeds);
-
-  useEffect(() => {
-    const handler = () => {
-      actions.getFeeds().then(({ data, error }) => {
-        if (data && !error) setFeeds(data);
-      });
-    };
-    document.addEventListener("feed-added", handler);
-    return () => document.removeEventListener("feed-added", handler);
-  }, []);
 
   const handleSelect = useCallback((sel: Selection) => {
     setSelected(sel);
     document.dispatchEvent(new CustomEvent("feed-selected", { detail: sel }));
   }, []);
 
+  const categories = extractCategories(feeds);
+
+  useEffect(() => {
+    const handler = (event: CustomEvent<FeedAdded>) => {
+      actions.getFeeds().then(({ data, error }) => {
+        if (data && !error) {
+          setFeeds(data);
+          handleSelect({ kind: "feed", id: event.detail.feedId, feedTitle: event.detail.feedTitle });
+        };
+      });
+    };
+    document.addEventListener("feed-added", handler);
+    return () => document.removeEventListener("feed-added", handler);
+  }, [handleSelect]);
+
   const cls = (active: boolean) =>
-    `hover:bg-gray-400/60 hover:cursor-pointer ${active ? "bg-gray-400/45" : ""}`;
+    `hover:bg-primary-hover/60 hover:cursor-pointer ${active ? "bg-primary-active" : ""}`;
 
   return (
     <ul className="p-3">
@@ -56,7 +62,7 @@ export const Sidebar = ({ initialFeeds }: Props) => {
         }}
         className={cls(selected.kind === "all")}
       >
-        <h2>All feeds</h2>
+        <h2>All Feeds</h2>
       </li>
       {categories.map((cat) => {
         const catFeeds = feeds.filter((f) => f.category === cat.key);

@@ -3,6 +3,17 @@ import { Rss } from "@lucide/astro";
 import { mapCategoriesToVisuals } from "../../lib/constants";
 
 const id = "add-feed-dialog";
+
+export type FeedAdded = {
+  feedId: number;
+  feedTitle: string;
+};
+
+declare global {
+  interface DocumentEventMap {
+    "feed-added": CustomEvent<FeedAdded>;
+  }
+}
 ---
 
 <button id="open-dialog" class="btn btn-primary p-1 h-10">
@@ -42,9 +53,13 @@ const id = "add-feed-dialog";
         form="feed-form"
       >
         <option class="" value="uncategorized" selected>Uncategorized</option>
-        {Object.entries(mapCategoriesToVisuals).map(([value, label]) => (
-          <option class="" value={value}>{label}</option>
-        ))}
+        {
+          Object.entries(mapCategoriesToVisuals).map(([value, label]) => (
+            <option class="" value={value}>
+              {label}
+            </option>
+          ))
+        }
       </select>
     </div>
 
@@ -81,9 +96,10 @@ const id = "add-feed-dialog";
     if (loading) {
       submitButton.setAttribute("disabled", "");
       cancelButton.setAttribute("disabled", "");
+    } else {
+      submitButton.removeAttribute("disabled");
+      cancelButton.removeAttribute("disabled");
     }
-    submitButton.removeAttribute("disabled");
-    cancelButton.removeAttribute("disabled");
   };
 
   openButton?.addEventListener("click", () => {
@@ -124,13 +140,20 @@ const id = "add-feed-dialog";
       console.error("Failed to add feed:", result.error.message);
       return;
     }
-
+    if (result.data) {
+      await actions.updateFeedItem({ id: result.data, url });
+    }
     loading = false;
     toggleLoading();
     dialog?.close();
 
     form.reset();
-    document.dispatchEvent(new CustomEvent("feed-added", { bubbles: true }));
+    document.dispatchEvent(
+      new CustomEvent("feed-added", {
+        bubbles: true,
+        detail: { feedId: result.data, feedTitle: title },
+      }),
+    );
   });
 
   dialog?.addEventListener("close", () => {

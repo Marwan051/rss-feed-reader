@@ -85,7 +85,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
 
   const header =
     selected.kind === "all"
-      ? "All items"
+      ? "All Feeds"
       : selected.kind === "category"
         ? mapCategoriesToVisuals[selected.key]
         : selected.feedTitle;
@@ -94,7 +94,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
     <div className="p-3 flex flex-col h-full gap-3">
       <h2 className=" font-semibold">{header}</h2>
       <ul
-        className="flex-1 min-h-0 overflow-y-auto scrollbar-none flex flex-col gap-1.5"
+        className="flex-1 min-h-0 overflow-y-auto scrollbar-thumb-primary flex flex-col gap-1.5"
         style={{ overflowAnchor: "none" }}
         ref={scrollAreaRef}
       >

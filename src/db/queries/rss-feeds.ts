@@ -15,7 +15,7 @@ export const AddFeed = (title: string, url: string, category?: string) => {
       category: category ?? "uncategorized",
       addedAt: new Date().toISOString(),
     })
-    .run();
+    .returning({feedId:feeds.id}).all();
 };
 
 export type feedItem = {

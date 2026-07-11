@@ -4,39 +4,72 @@
    Tailwind theme
 -------------------------------- */
 @theme {
-  --color-burgundy: #780116;
-  --color-sunflower: #f7b538;
-  --color-ochre: #db7c26;
-  --color-paprika: #d8572a;
-  --color-flag-red: #c32f27;
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-secondary: var(--secondary);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-raised: var(--surface-raised);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-link: var(--link);
+  --color-link-visited: var(--link-visited);
 }
 
 /* ------------------------------
    Design tokens
 -------------------------------- */
 :root {
+  /*
+   * Surface hierarchy (light mode) — each step is clearly visible:
+   *
+   *   background    #ecdfd0  ← warm tan page canvas
+   *   surface-alt   #e5d3bc  ← table rows, code blocks, secondary panels
+   *   surface       #fdfaf5  ← cards / primary panels
+   *   surface-raised #ffffff ← modals, dropdowns, tooltips
+   */
+
   /* Surfaces */
-  --background: #fffaf4;
-  --surface: #ffffff;
-  --surface-alt: #f8f5f0;
-  --surface-raised: #ffffff;
+  --background:    #e0c9b0; /* warm caramel — clearly a "canvas" tone        */
+  --surface:       #fdfaf5; /* warm ivory — cards pop noticeably off the bg   */
+  --surface-alt:   #f0e3d0; /* warm sand — sits between bg and surface        */
+  --surface-raised:#ffffff; /* pure white — modals / dropdowns float highest  */
 
   /* Text */
   --foreground: #2b1e1b;
   --muted: #74655f;
   --muted-light: #a89890;
 
-  /* Borders */
-  --border: #e8ddd3;
-  --border-strong: #d0c3b6;
+  /* Borders — darkened slightly so they stay visible on the new bg */
+  --border:        #c8b5a0;
+  --border-strong: #b09080;
 
-  /* Primary — Paprika */
+  /* Secondary */
+  --secondary: #780116;
+
+  /* Primary */
   --primary: #d8572a;
   --primary-hover: #bb4519;
   --primary-active: #a03712;
   --primary-subtle: #fef1ec;
 
-  /* Accent — Sunflower */
+  /* Accent */
   --accent: #f7b538;
   --accent-hover: #e09a10;
   --accent-active: #c98300;
@@ -52,7 +85,7 @@
   --success: #2a7a4e;
   --success-subtle: #edf7f2;
 
-  /* Shadows — warm paprika tint */
+  /* Shadows — warm primary tint */
   --shadow-sm: 0 1px 3px rgb(43 30 27 / 0.06), 0 1px 2px rgb(43 30 27 / 0.04);
   --shadow-md: 0 4px 14px rgb(216 87 42 / 0.1), 0 2px 4px rgb(43 30 27 / 0.05);
   --shadow-lg:
@@ -73,11 +106,20 @@
 }
 
 .dark {
+  /*
+   * Surface hierarchy (dark mode) — each step ~5–6 lightness points apart:
+   *
+   *   background    #100c0c  ← near-black, deepest layer
+   *   surface-alt   #271818  ← recessed / secondary panels
+   *   surface       #1e1414  ← default card surface
+   *   surface-raised #3c2424 ← elevated cards, modals, dropdowns
+   */
+
   /* Surfaces */
-  --background: #1b1212;
-  --surface: #261818;
-  --surface-alt: #321d1d;
-  --surface-raised: #3a2222;
+  --background:    #100c0c;
+  --surface:       #1e1414;
+  --surface-alt:   #271818;
+  --surface-raised:#3c2424;
 
   /* Text */
   --foreground: #f7efe8;
@@ -88,7 +130,10 @@
   --border: #4b2a2a;
   --border-strong: #6a3535;
 
-  /* Primary — lighter paprika for dark bg */
+  /* Secondary */
+  --secondary: #a04030;
+
+  /* Primary — lighter for dark bg */
   --primary: #f07052;
   --primary-hover: #f58060;
   --primary-active: #fa9070;
@@ -194,7 +239,7 @@
     color: var(--foreground);
   }
 
-  /* Keyboard focus ring — paprika, only visible via keyboard */
+  /* Keyboard focus ring — primary, only visible via keyboard */
   :focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 3px;
