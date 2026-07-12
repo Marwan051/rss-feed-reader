@@ -2,8 +2,8 @@ import {
   sqliteTable,
   integer,
   text,
-  primaryKey,
   uniqueIndex,
+
 } from "drizzle-orm/sqlite-core";
 
 export const feeds = sqliteTable(
@@ -31,34 +31,13 @@ export const items = sqliteTable(
     content: text("content"),
     contentSnippet: text("contentSnippet"),
     pubDate: text("pub_date"),
+    read: integer("read",{ mode: "boolean" }).default(false).notNull(),
+    bookmarkedAt:text("bookmarked_at")
   },
   (t) => [uniqueIndex("items_feed_guid_unique").on(t.feedId, t.guid)],
-);
-
-export const readItems = sqliteTable(
-  "read_items",
-  {
-    itemId: integer("item_id")
-      .notNull()
-      .references(() => items.id, { onDelete: "cascade" }),
-  },
-  (t) => [primaryKey({ columns: [t.itemId] })],
-);
-
-export const bookmarks = sqliteTable(
-  "bookmarks",
-  {
-    itemId: integer("item_id")
-      .notNull()
-      .references(() => items.id, { onDelete: "cascade" }),
-    savedAt: text("saved_at").notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.itemId] })],
 );
 
 export const schema = {
   feeds,
   items,
-  readItems,
-  bookmarks,
 };

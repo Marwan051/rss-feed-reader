@@ -5,21 +5,32 @@ import { getFeeds, getAllFeedItems } from "../db/queries/rss-feeds";
 import { Sidebar } from "../components/Bars/SideBar";
 import { MiddleBar } from "../components/Bars/MiddleBar";
 import { FeedViewer } from "../components/FeedViewer";
+import { Rss } from "@lucide/astro";
 
 const feeds = getFeeds();
 const initialItems = getAllFeedItems().map((item) => ({
   itemId: item.itemId,
   title: item.title ?? "No title",
   pubDate: new Date(item.pubDate!),
+  read: item.read,
 }));
 ---
 
 <Layout>
-  <div class="bg-surface w-full flex justify-end gap-4 p-3 items-center">
-    <AddFeedButton />
-    <button class="primary-btn p-4" id="update-feeds-btn">
-      Update feeds
-    </button>
+  <div class="flex flex-row justify-between bg-surface">
+    <div
+      class="text-nowrap flex flex-row justify-center items-center text-center"
+    >
+      <h1 class="flex items-center gap-2 ml-2">
+        <Rss class="inline size-8" /> RSS feed Reader
+      </h1>
+    </div>
+    <div class="w-full flex justify-end gap-4 p-3 items-center">
+      <AddFeedButton />
+      <button class="primary-btn p-4" id="update-feeds-btn">
+        Update feeds
+      </button>
+    </div>
   </div>
   <section
     class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 flex-1 min-h-0 w-full"

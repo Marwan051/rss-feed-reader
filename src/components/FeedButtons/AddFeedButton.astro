@@ -1,5 +1,5 @@
 ---
-import { Rss } from "@lucide/astro";
+import { Plus } from "@lucide/astro";
 import { mapCategoriesToVisuals } from "../../lib/constants";
 
 const id = "add-feed-dialog";
@@ -16,8 +16,11 @@ declare global {
 }
 ---
 
-<button id="open-dialog" class="btn btn-primary p-1 h-10">
-  <Rss class="inline size-4" />
+<button
+  id="open-dialog"
+  class="btn btn-primary p-1 h-10 flex items-center justify-center gap-1"
+>
+  <Plus class="size-6" />
   <span>Add Feed</span>
 </button>
 

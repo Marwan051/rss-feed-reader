@@ -15,6 +15,20 @@
       "when": 1783025425874,
       "tag": "0001_thin_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783857082858,
+      "tag": "0002_curious_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783862866599,
+      "tag": "0003_amusing_slyde",
+      "breakpoints": true
     }
   ]
 }

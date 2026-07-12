@@ -1,0 +1,1 @@
+ALTER TABLE `items` ADD `read` integer DEFAULT false NOT NULL;

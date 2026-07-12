@@ -15,7 +15,8 @@ export const AddFeed = (title: string, url: string, category?: string) => {
       category: category ?? "uncategorized",
       addedAt: new Date().toISOString(),
     })
-    .returning({feedId:feeds.id}).all();
+    .returning({ feedId: feeds.id })
+    .all();
 };
 
 export type feedItem = {
@@ -46,13 +47,18 @@ export const insertFeedItems = (feedItems: NewItem[]) => {
     .run();
 };
 
-export const removeFeed = async (feedId: number) => {
-  return await db.delete(feeds).where(eq(feeds.id, feedId));
+export const removeFeed = (feedId: number) => {
+  return db.delete(feeds).where(eq(feeds.id, feedId)).run();
 };
 
 export const getAllFeedItems = () => {
   return db
-    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .orderBy(desc(items.pubDate), items.feedId)
     .all();
@@ -60,7 +66,12 @@ export const getAllFeedItems = () => {
 
 export const getFeedItemsByCategory = (category: string) => {
   return db
-    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .where(
       inArray(
@@ -77,14 +88,50 @@ export const getFeedItemsByCategory = (category: string) => {
 
 export const getFeedItemsByFeedId = (feedId: number) => {
   return db
-    .select({itemId:items.id, title: items.title, pubDate: items.pubDate })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .where(eq(items.feedId, feedId))
     .orderBy(desc(items.pubDate))
     .all();
 };
 
+export const getFeedItemById = (itemId: number) => {
+  return db.select().from(items).where(eq(items.id, itemId)).all();
+};
 
-export const getFeedItemById = (itemId:number) => {
-  return db.select().from(items).where(eq(items.id,itemId)).all()
-}
+export const markFeedItemAsRead = (itemId: number) => {
+  return db.update(items).set({ read: true }).where(eq(items.id, itemId)).run();
+};
+
+export const markFeedAsRead = (feedId: number) => {
+  return db
+    .update(items)
+    .set({ read: true })
+    .where(eq(items.feedId, feedId))
+    .run();
+};
+
+export const markCategoryAsRead = (category: string) => {
+  return db
+    .update(items)
+    .set({ read: true })
+    .where(
+      inArray(
+        items.feedId,
+        db
+          .select({ id: feeds.id })
+          .from(feeds)
+          .where(eq(feeds.category, category)),
+      ),
+    )
+    .run();
+};
+
+export const markAllAsRead = () => {
+  return db.update(items).set({ read: true }).run();
+};

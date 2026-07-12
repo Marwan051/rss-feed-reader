@@ -8,6 +8,10 @@ import {
   getFeedItemsByFeedId,
   getFeeds,
   insertFeedItems,
+  markAllAsRead,
+  markCategoryAsRead,
+  markFeedAsRead,
+  markFeedItemAsRead,
   removeFeed,
 } from "../db/queries/rss-feeds";
 import Parser from "rss-parser";
@@ -25,7 +29,10 @@ type FeedResult =
     }
   | { success: false; id: number; url: string; error: unknown };
 
-const parseAndInsertFeedItems = (feedId: number, feed: Parser.Output<{ [key: string]: any }>) => {
+const parseAndInsertFeedItems = (
+  feedId: number,
+  feed: Parser.Output<{ [key: string]: any }>,
+) => {
   const feedItemsData = feed.items.flatMap((item) => {
     if (!item.title || !item.link || !item.guid) return [];
     return [
@@ -34,7 +41,9 @@ const parseAndInsertFeedItems = (feedId: number, feed: Parser.Output<{ [key: str
         guid: item.guid.split("#")[0],
         title: item.title,
         link: item.link,
-        content: sanitizeFeedContent(item['content:encoded'] || item.content || ""),
+        content: sanitizeFeedContent(
+          item["content:encoded"] || item.content || "",
+        ),
         contentSnippet: item.contentSnippet || "",
         pubDate: item.isoDate || new Date().toISOString(),
       },
@@ -202,6 +211,59 @@ export const server = {
       } catch (error) {
         // TODO: Handle error handling
         console.error("Error retriving data ", error);
+        return;
+      }
+    },
+  }),
+  markItemAsRead: defineAction({
+    input: z.object({
+      itemId: z.number(),
+    }),
+    handler: (input) => {
+      try {
+        return markFeedItemAsRead(input.itemId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error updating data ", error);
+        return;
+      }
+    },
+  }),
+  markFeedAsRead: defineAction({
+    input: z.object({
+      feedId: z.number(),
+    }),
+    handler: (input) => {
+      try {
+        return markFeedAsRead(input.feedId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error updating data ", error);
+        return;
+      }
+    },
+  }),
+  markCategoryAsRead: defineAction({
+    input: z.object({
+      category: z.string().min(1),
+    }),
+    handler: (input) => {
+      try {
+        return markCategoryAsRead(input.category);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error updating data ", error);
+        return;
+      }
+    },
+  }),
+  markAllAsRead: defineAction({
+    handler: () => {
+      try {
+        return markAllAsRead();
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error updating data ", error);
         return;
       }
     },

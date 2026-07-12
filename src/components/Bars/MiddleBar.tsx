@@ -1,11 +1,12 @@
 import { actions } from "astro:actions";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEventHandler } from "react";
 import type { Selection } from "./SideBar";
 import { mapCategoriesToVisuals } from "../../lib/constants";
 
 export type FeedItem = {
   itemId: number;
   title: string;
+  read: boolean;
   pubDate: Date;
 };
 
@@ -39,6 +40,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
                   itemId: item.itemId,
                   title: item.title ?? "No title",
                   pubDate: new Date(item.pubDate!),
+                  read: item.read,
                 })),
               );
             }
@@ -54,6 +56,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
                     itemId: item.itemId,
                     title: item.title ?? "No title",
                     pubDate: new Date(item.pubDate!),
+                    read: item.read,
                   })),
                 );
               }
@@ -69,6 +72,7 @@ export const MiddleBar = ({ initialItems }: Props) => {
                     itemId: item.itemId,
                     title: item.title ?? "No title",
                     pubDate: new Date(item.pubDate!),
+                    read: item.read,
                   })),
                 );
               }
@@ -80,8 +84,44 @@ export const MiddleBar = ({ initialItems }: Props) => {
     return () => document.removeEventListener("feed-selected", handler);
   }, []);
 
-  const cls = (active: boolean) =>
-    `hover:bg-gray-400/60 hover:cursor-pointer ${active ? "bg-gray-400/45" : ""}`;
+  const handleMarkAsRead: MouseEventHandler<HTMLButtonElement> = () => {
+    switch (selected.kind) {
+      case "all":
+        actions.markAllAsRead().then(({ data, error }) => {
+          if (data && !error) {
+            setFeedItems((prev) =>
+              prev.map((feedItem) => ({ ...feedItem, read: true })),
+            );
+          }
+        });
+        break;
+      case "category":
+        actions
+          .markCategoryAsRead({ category: selected.key })
+          .then(({ data, error }) => {
+            if (data && !error) {
+              setFeedItems((prev) =>
+                prev.map((feedItem) => ({ ...feedItem, read: true })),
+              );
+            }
+          });
+        break;
+      case "feed":
+        actions
+          .markFeedAsRead({ feedId: selected.id })
+          .then(({ data, error }) => {
+            if (data && !error) {
+              setFeedItems((prev) =>
+                prev.map((feedItem) => ({ ...feedItem, read: true })),
+              );
+            }
+          });
+        break;
+    }
+  };
+
+  const cls = (active: boolean, read: boolean) =>
+    `hover:bg-primary-hover hover:cursor-pointer ${active ? "bg-primary" : read ? "bg-accent-subtle" : "bg-accent"}`;
 
   const header =
     selected.kind === "all"
@@ -92,7 +132,16 @@ export const MiddleBar = ({ initialItems }: Props) => {
 
   return (
     <div className="p-3 flex flex-col h-full gap-3">
-      <h2 className=" font-semibold">{header}</h2>
+      <div className="flex flex-row justify-between px-2">
+        <h2 className=" font-semibold">{header}</h2>
+        <button
+          type="button"
+          className="text-primary hover:text-primary-hover hover:underline"
+          onClick={handleMarkAsRead}
+        >
+          Mark all current items as read
+        </button>
+      </div>
       <ul
         className="flex-1 min-h-0 overflow-y-auto scrollbar-thumb-primary flex flex-col gap-1.5"
         style={{ overflowAnchor: "none" }}
@@ -101,9 +150,19 @@ export const MiddleBar = ({ initialItems }: Props) => {
         {feedItems.map((item) => (
           <li
             key={item.itemId}
-            className={`${cls(selectedItemId === item.itemId)} rounded p-2 bg-gray-400`}
-            onClick={() => {
+            className={`${cls(selectedItemId === item.itemId, item.read)} rounded p-2`}
+            onClick={ () => {
               setSelectedItemId(item.itemId);
+
+              actions.markItemAsRead({ itemId: item.itemId }).then(() => {
+                setFeedItems((prev) =>
+                  prev.map((feedItem) =>
+                    feedItem.itemId === item.itemId
+                      ? { ...feedItem, read: true }
+                      : feedItem,
+                  ),
+                );
+              });
               document.dispatchEvent(
                 new CustomEvent("feed-item-selected", {
                   detail: { itemId: item.itemId, title: item.title },
