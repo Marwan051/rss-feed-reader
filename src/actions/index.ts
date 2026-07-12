@@ -3,16 +3,21 @@ import { ActionError, defineAction } from "astro:actions";
 import {
   AddFeed,
   getAllFeedItems,
+  getAllFeedItemsPaginated,
   getFeedItemById,
   getFeedItemsByCategory,
+  getFeedItemsByCategoryPaginated,
   getFeedItemsByFeedId,
+  getFeedItemsByFeedIdPaginated,
   getFeeds,
+  getStaleFeeds,
   insertFeedItems,
   markAllAsRead,
   markCategoryAsRead,
   markFeedAsRead,
   markFeedItemAsRead,
   removeFeed,
+  setFeedLastFetchedAt,
 } from "../db/queries/rss-feeds";
 import Parser from "rss-parser";
 import pLimit from "p-limit";
@@ -104,7 +109,8 @@ export const server = {
       const parser = new Parser({
         maxRedirects: 50,
       });
-      const feeds = getFeeds();
+      const feeds = getStaleFeeds(5);
+      if (feeds.length === 0) return;
       const limit = pLimit({ concurrency: 5 });
       const feedsItems = await Promise.all(
         feeds.map((feed) =>
@@ -133,9 +139,10 @@ export const server = {
       // TODO: handle failures later
       const failed = feedsItems.filter((f) => !f.success);
 
-      succeeded.map((feedItem) => {
+      for (const feedItem of succeeded) {
         parseAndInsertFeedItems(feedItem.id, feedItem.data);
-      });
+        setFeedLastFetchedAt(feedItem.id);
+      }
     },
   }),
   updateFeedItem: defineAction({
@@ -200,6 +207,53 @@ export const server = {
         // TODO: Handle error handling
         console.error("Error retriving data ", error);
         return;
+      }
+    },
+  }),
+  getAllFeedItemsPaginated: defineAction({
+    input: z.object({
+      cursor: z
+        .object({ pubDate: z.string(), itemId: z.number() })
+        .optional(),
+    }),
+    handler: (input) => {
+      try {
+        return getAllFeedItemsPaginated(input.cursor);
+      } catch (error) {
+        console.error("Error retrieving data ", error);
+        return { items: [], nextCursor: null };
+      }
+    },
+  }),
+  getFeedItemsByCategoryPaginated: defineAction({
+    input: z.object({
+      category: z.string(),
+      cursor: z
+        .object({ pubDate: z.string(), itemId: z.number() })
+        .optional(),
+    }),
+    handler: (input) => {
+      try {
+        return getFeedItemsByCategoryPaginated(input.category, input.cursor);
+      } catch (error) {
+        console.error("Error retrieving data ", error);
+        return { items: [], nextCursor: null };
+      }
+    },
+  }),
+  getFeedItemsByFeedIdPaginated: defineAction({
+    input: z.object({
+      feedId: z.number(),
+      cursor: z
+        .object({ pubDate: z.string(), itemId: z.number() })
+        .optional(),
+    }),
+    handler: (input) => {
+      try {
+        return getFeedItemsByFeedIdPaginated(input.feedId, input.cursor);
+      } catch (error) {
+        console.error("Error retrieving data ", error);
+        return { items: [], nextCursor: null };
       }
     },
   }),

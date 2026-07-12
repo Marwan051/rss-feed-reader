@@ -1,19 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import AddFeedButton from "../components/FeedButtons/AddFeedButton.astro";
-import { getFeeds, getAllFeedItems } from "../db/queries/rss-feeds";
+import { getFeeds, getAllFeedItemsPaginated } from "../db/queries/rss-feeds";
 import { Sidebar } from "../components/Bars/SideBar";
 import { MiddleBar } from "../components/Bars/MiddleBar";
 import { FeedViewer } from "../components/FeedViewer";
 import { Rss } from "@lucide/astro";
 
 const feeds = getFeeds();
-const initialItems = getAllFeedItems().map((item) => ({
-  itemId: item.itemId,
-  title: item.title ?? "No title",
-  pubDate: new Date(item.pubDate!),
-  read: item.read,
-}));
+const { items: initialItems, nextCursor: initialCursor } = getAllFeedItemsPaginated();
 ---
 
 <Layout>
@@ -42,7 +37,16 @@ const initialItems = getAllFeedItems().map((item) => ({
 
     <!-- Feed item chooser -->
     <section class="h-full bg-surface-alt">
-      <MiddleBar initialItems={initialItems} client:load />
+      <MiddleBar
+          initialItems={initialItems.map((item) => ({
+            itemId: item.itemId,
+            title: item.title ?? "No title",
+            pubDate: new Date(item.pubDate!),
+            read: item.read,
+          }))}
+          initialCursor={initialCursor}
+          client:load
+        />
     </section>
 
     <!-- Feed item viewer -->

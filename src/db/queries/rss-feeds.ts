@@ -1,9 +1,32 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, or } from "drizzle-orm";
 import { db } from "../index";
 import { feeds, items } from "../schema";
 
 export const getFeeds = () => {
   return db.select().from(feeds).orderBy(feeds.category).all();
+};
+
+export const getStaleFeeds = (staleMinutes: number = 5) => {
+  const cutoff = new Date(Date.now() - staleMinutes * 60 * 1000).toISOString();
+  return db
+    .select()
+    .from(feeds)
+    .where(
+      or(
+        isNull(feeds.lastFetchedAt),
+        lt(feeds.lastFetchedAt,cutoff)
+      )
+    )
+    .orderBy(feeds.category)
+    .all();
+};
+
+export const setFeedLastFetchedAt = (feedId: number) => {
+  return db
+    .update(feeds)
+    .set({ lastFetchedAt: new Date().toISOString() })
+    .where(eq(feeds.id, feedId))
+    .run();
 };
 
 export const AddFeed = (title: string, url: string, category?: string) => {
@@ -73,15 +96,8 @@ export const getFeedItemsByCategory = (category: string) => {
       read: items.read,
     })
     .from(items)
-    .where(
-      inArray(
-        items.feedId,
-        db
-          .select({ id: feeds.id })
-          .from(feeds)
-          .where(eq(feeds.category, category)),
-      ),
-    )
+    .innerJoin(feeds, eq(items.feedId, feeds.id))
+    .where(eq(feeds.category, category))
     .orderBy(desc(items.pubDate), items.feedId)
     .all();
 };
@@ -98,6 +114,91 @@ export const getFeedItemsByFeedId = (feedId: number) => {
     .where(eq(items.feedId, feedId))
     .orderBy(desc(items.pubDate))
     .all();
+};
+
+export type Cursor = { pubDate: string; itemId: number };
+const PAGE_SIZE = 50;
+
+type ItemRow = {
+  itemId: number;
+  title: string | null;
+  pubDate: string | null;
+  read: boolean;
+};
+
+type PageResult = {
+  items: ItemRow[];
+  nextCursor: Cursor | null;
+};
+
+function buildCursorCondition(cursor: Cursor) {
+  return or(
+    lt(items.pubDate, cursor.pubDate),
+    and(eq(items.pubDate, cursor.pubDate), lt(items.id, cursor.itemId)),
+  );
+}
+
+export const getAllFeedItemsPaginated = (cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+  const result = db
+    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .from(items)
+    .where(cursor ? buildCursorCondition(cursor) : undefined)
+    .orderBy(desc(items.pubDate), desc(items.id))
+    .limit(limit)
+    .all();
+
+  const last = result[result.length - 1];
+  return {
+    items: result,
+    nextCursor: result.length === limit && last.pubDate
+      ? { pubDate: last.pubDate, itemId: last.itemId }
+      : null,
+  };
+};
+
+export const getFeedItemsByCategoryPaginated = (category: string, cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+  const result = db
+    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .from(items)
+    .innerJoin(feeds, eq(items.feedId, feeds.id))
+    .where(
+      cursor
+        ? and(eq(feeds.category, category), buildCursorCondition(cursor))
+        : eq(feeds.category, category),
+    )
+    .orderBy(desc(items.pubDate), desc(items.id))
+    .limit(limit)
+    .all();
+
+  const last = result[result.length - 1];
+  return {
+    items: result,
+    nextCursor: result.length === limit && last.pubDate
+      ? { pubDate: last.pubDate, itemId: last.itemId }
+      : null,
+  };
+};
+
+export const getFeedItemsByFeedIdPaginated = (feedId: number, cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+  const result = db
+    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .from(items)
+    .where(
+      cursor
+        ? and(eq(items.feedId, feedId), buildCursorCondition(cursor))
+        : eq(items.feedId, feedId),
+    )
+    .orderBy(desc(items.pubDate), desc(items.id))
+    .limit(limit)
+    .all();
+
+  const last = result[result.length - 1];
+  return {
+    items: result,
+    nextCursor: result.length === limit && last.pubDate
+      ? { pubDate: last.pubDate, itemId: last.itemId }
+      : null,
+  };
 };
 
 export const getFeedItemById = (itemId: number) => {
