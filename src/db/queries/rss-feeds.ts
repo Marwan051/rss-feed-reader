@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, lt, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lt, or } from "drizzle-orm";
 import { db } from "../index";
 import { feeds, items } from "../schema";
 
@@ -11,12 +11,7 @@ export const getStaleFeeds = (staleMinutes: number = 5) => {
   return db
     .select()
     .from(feeds)
-    .where(
-      or(
-        isNull(feeds.lastFetchedAt),
-        lt(feeds.lastFetchedAt,cutoff)
-      )
-    )
+    .where(or(isNull(feeds.lastFetchedAt), lt(feeds.lastFetchedAt, cutoff)))
     .orderBy(feeds.category)
     .all();
 };
@@ -122,6 +117,7 @@ const PAGE_SIZE = 50;
 type ItemRow = {
   itemId: number;
   title: string | null;
+  bookmarkedAt: string | null;
   pubDate: string | null;
   read: boolean;
 };
@@ -138,9 +134,18 @@ function buildCursorCondition(cursor: Cursor) {
   );
 }
 
-export const getAllFeedItemsPaginated = (cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+export const getAllFeedItemsPaginated = (
+  cursor?: Cursor | null,
+  limit = PAGE_SIZE,
+): PageResult => {
   const result = db
-    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      bookmarkedAt: items.bookmarkedAt,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .where(cursor ? buildCursorCondition(cursor) : undefined)
     .orderBy(desc(items.pubDate), desc(items.id))
@@ -150,15 +155,26 @@ export const getAllFeedItemsPaginated = (cursor?: Cursor | null, limit = PAGE_SI
   const last = result[result.length - 1];
   return {
     items: result,
-    nextCursor: result.length === limit && last.pubDate
-      ? { pubDate: last.pubDate, itemId: last.itemId }
-      : null,
+    nextCursor:
+      result.length === limit && last.pubDate
+        ? { pubDate: last.pubDate, itemId: last.itemId }
+        : null,
   };
 };
 
-export const getFeedItemsByCategoryPaginated = (category: string, cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+export const getFeedItemsByCategoryPaginated = (
+  category: string,
+  cursor?: Cursor | null,
+  limit = PAGE_SIZE,
+): PageResult => {
   const result = db
-    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      bookmarkedAt: items.bookmarkedAt,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .innerJoin(feeds, eq(items.feedId, feeds.id))
     .where(
@@ -173,15 +189,26 @@ export const getFeedItemsByCategoryPaginated = (category: string, cursor?: Curso
   const last = result[result.length - 1];
   return {
     items: result,
-    nextCursor: result.length === limit && last.pubDate
-      ? { pubDate: last.pubDate, itemId: last.itemId }
-      : null,
+    nextCursor:
+      result.length === limit && last.pubDate
+        ? { pubDate: last.pubDate, itemId: last.itemId }
+        : null,
   };
 };
 
-export const getFeedItemsByFeedIdPaginated = (feedId: number, cursor?: Cursor | null, limit = PAGE_SIZE): PageResult => {
+export const getFeedItemsByFeedIdPaginated = (
+  feedId: number,
+  cursor?: Cursor | null,
+  limit = PAGE_SIZE,
+): PageResult => {
   const result = db
-    .select({ itemId: items.id, title: items.title, pubDate: items.pubDate, read: items.read })
+    .select({
+      itemId: items.id,
+      title: items.title,
+      bookmarkedAt: items.bookmarkedAt,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
     .from(items)
     .where(
       cursor
@@ -195,9 +222,10 @@ export const getFeedItemsByFeedIdPaginated = (feedId: number, cursor?: Cursor | 
   const last = result[result.length - 1];
   return {
     items: result,
-    nextCursor: result.length === limit && last.pubDate
-      ? { pubDate: last.pubDate, itemId: last.itemId }
-      : null,
+    nextCursor:
+      result.length === limit && last.pubDate
+        ? { pubDate: last.pubDate, itemId: last.itemId }
+        : null,
   };
 };
 
@@ -235,4 +263,59 @@ export const markCategoryAsRead = (category: string) => {
 
 export const markAllAsRead = () => {
   return db.update(items).set({ read: true }).run();
+};
+
+export const setBookmark = (itemId: number) => {
+  return db
+    .update(items)
+    .set({ bookmarkedAt: new Date().toISOString() })
+    .where(eq(items.id, itemId))
+    .run();
+};
+
+export const removeBookmark = (itemId: number) => {
+  return db
+    .update(items)
+    .set({ bookmarkedAt: null })
+    .where(eq(items.id, itemId))
+    .run();
+};
+// Add cursor based navigation
+export const getBookmarkedPaginated = (
+  cursor?: Cursor | null,
+  limit = PAGE_SIZE,
+): PageResult => {
+  const result = db
+    .select({
+      itemId: items.id,
+      title: items.title,
+      bookmarkedAt: items.bookmarkedAt,
+      pubDate: items.pubDate,
+      read: items.read,
+    })
+    .from(items)
+    .where(
+      cursor
+        ? and(isNotNull(items.bookmarkedAt), buildCursorCondition(cursor))
+        : isNotNull(items.bookmarkedAt),
+    )
+    .orderBy(desc(items.pubDate), desc(items.id))
+    .limit(limit)
+    .all();
+  const last = result[result.length - 1];
+  return {
+    items: result,
+    nextCursor:
+      result.length === limit && last.pubDate
+        ? { pubDate: last.pubDate, itemId: last.itemId }
+        : null,
+  };
+};
+
+export const setAllBookmarkedAsRead = () => {
+  return db
+    .update(items)
+    .set({ read: true })
+    .where(isNotNull(items.bookmarkedAt))
+    .run();
 };

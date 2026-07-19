@@ -4,6 +4,7 @@ import {
   AddFeed,
   getAllFeedItems,
   getAllFeedItemsPaginated,
+  getBookmarkedPaginated,
   getFeedItemById,
   getFeedItemsByCategory,
   getFeedItemsByCategoryPaginated,
@@ -16,7 +17,10 @@ import {
   markCategoryAsRead,
   markFeedAsRead,
   markFeedItemAsRead,
+  removeBookmark,
   removeFeed,
+  setAllBookmarkedAsRead,
+  setBookmark,
   setFeedLastFetchedAt,
 } from "../db/queries/rss-feeds";
 import Parser from "rss-parser";
@@ -212,9 +216,7 @@ export const server = {
   }),
   getAllFeedItemsPaginated: defineAction({
     input: z.object({
-      cursor: z
-        .object({ pubDate: z.string(), itemId: z.number() })
-        .optional(),
+      cursor: z.object({ pubDate: z.string(), itemId: z.number() }).optional(),
     }),
     handler: (input) => {
       try {
@@ -228,9 +230,7 @@ export const server = {
   getFeedItemsByCategoryPaginated: defineAction({
     input: z.object({
       category: z.string(),
-      cursor: z
-        .object({ pubDate: z.string(), itemId: z.number() })
-        .optional(),
+      cursor: z.object({ pubDate: z.string(), itemId: z.number() }).optional(),
     }),
     handler: (input) => {
       try {
@@ -244,9 +244,7 @@ export const server = {
   getFeedItemsByFeedIdPaginated: defineAction({
     input: z.object({
       feedId: z.number(),
-      cursor: z
-        .object({ pubDate: z.string(), itemId: z.number() })
-        .optional(),
+      cursor: z.object({ pubDate: z.string(), itemId: z.number() }).optional(),
     }),
     handler: (input) => {
       try {
@@ -318,6 +316,59 @@ export const server = {
       } catch (error) {
         // TODO: Handle error handling
         console.error("Error updating data ", error);
+        return;
+      }
+    },
+  }),
+  setBookmark: defineAction({
+    input: z.object({
+      itemId: z.number(),
+    }),
+    handler: (input) => {
+      try {
+        return setBookmark(input.itemId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error Adding bookmark ", error);
+        return;
+      }
+    },
+  }),
+  removeBookmark: defineAction({
+    input: z.object({
+      itemId: z.number(),
+    }),
+    handler: (input) => {
+      try {
+        return removeBookmark(input.itemId);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error removing bookmark ", error);
+        return;
+      }
+    },
+  }),
+  getBookmarkedItemsPaginated: defineAction({
+    input: z.object({
+      cursor: z.object({ pubDate: z.string(), itemId: z.number() }).optional(),
+    }),
+    handler: (input) => {
+      try {
+        return getBookmarkedPaginated(input.cursor);
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error getting bookmarked items ", error);
+        return;
+      }
+    },
+  }),
+  setAllBookmarkedAsRead: defineAction({
+    handler: (input) => {
+      try {
+        return setAllBookmarkedAsRead();
+      } catch (error) {
+        // TODO: Handle error handling
+        console.error("Error setting bookmarked items as read ", error);
         return;
       }
     },

@@ -32,8 +32,8 @@ export const items = sqliteTable(
     content: text("content"),
     contentSnippet: text("contentSnippet"),
     pubDate: text("pub_date"),
-    read: integer("read",{ mode: "boolean" }).default(false).notNull(),
-    bookmarkedAt:text("bookmarked_at")
+    read: integer("read", { mode: "boolean" }).default(false).notNull(),
+    bookmarkedAt: text("bookmarked_at"),
   },
   (t) => [
     uniqueIndex("items_feed_guid_unique").on(t.feedId, t.guid),

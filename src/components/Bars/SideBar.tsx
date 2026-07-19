@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { actions } from "astro:actions";
 import { extractCategories } from "../../lib/categories";
 import type { FeedAdded } from "../FeedButtons/AddFeedButton.astro";
+import { Bookmark } from "lucide-react";
 
 interface Feed {
   id: number;
@@ -13,6 +14,7 @@ interface Feed {
 
 export type Selection =
   | { kind: "all" }
+  | { kind: "bookmarked" }
   | { kind: "category"; key: string }
   | { kind: "feed"; id: number; feedTitle: string };
 
@@ -43,8 +45,12 @@ export const Sidebar = ({ initialFeeds }: Props) => {
       actions.getFeeds().then(({ data, error }) => {
         if (data && !error) {
           setFeeds(data);
-          handleSelect({ kind: "feed", id: event.detail.feedId, feedTitle: event.detail.feedTitle });
-        };
+          handleSelect({
+            kind: "feed",
+            id: event.detail.feedId,
+            feedTitle: event.detail.feedTitle,
+          });
+        }
       });
     };
     document.addEventListener("feed-added", handler);
@@ -63,6 +69,17 @@ export const Sidebar = ({ initialFeeds }: Props) => {
         className={cls(selected.kind === "all")}
       >
         <h2>All Feeds</h2>
+      </li>
+      <li
+        onClick={() => {
+          handleSelect({ kind: "bookmarked" });
+        }}
+        className={cls(selected.kind === "bookmarked")}
+      >
+        <h2>
+          <Bookmark fill="" className="inline-block" />
+          Bookmarked
+        </h2>
       </li>
       {categories.map((cat) => {
         const catFeeds = feeds.filter((f) => f.category === cat.key);

@@ -3,11 +3,13 @@ import { useEffect, useRef, useState, type MouseEventHandler } from "react";
 import type { Selection } from "./SideBar";
 import { mapCategoriesToVisuals } from "../../lib/constants";
 import type { Cursor } from "../../db/queries/rss-feeds";
+import { Bookmark } from "lucide-react";
 
 export type FeedItem = {
   itemId: number;
   title: string;
   read: boolean;
+  bookmarkedAt: Date | null;
   pubDate: Date;
 };
 
@@ -37,10 +39,17 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
     selectedRef.current = selected;
   }, [selected]);
 
-  const toFeedItem = (item: { itemId: number; title: string | null; pubDate: string | null; read: boolean }) => ({
+  const toFeedItem = (item: {
+    itemId: number;
+    title: string | null;
+    bookmarkedAt: string | null;
+    pubDate: string | null;
+    read: boolean;
+  }) => ({
     itemId: item.itemId,
     title: item.title ?? "No title",
     pubDate: new Date(item.pubDate ?? new Date().toISOString()),
+    bookmarkedAt: item.bookmarkedAt ? new Date(item.bookmarkedAt) : null,
     read: item.read,
   });
 
@@ -52,6 +61,9 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
     switch (sel.kind) {
       case "all":
         fetch = actions.getAllFeedItemsPaginated({});
+        break;
+      case "bookmarked":
+        fetch = actions.getBookmarkedItemsPaginated({});
         break;
       case "category":
         fetch = actions.getFeedItemsByCategoryPaginated({ category: sel.key });
@@ -93,11 +105,20 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
             case "all":
               fetch = actions.getAllFeedItemsPaginated({ cursor });
               break;
+            case "bookmarked":
+              fetch = actions.getBookmarkedItemsPaginated({ cursor });
+              break;
             case "category":
-              fetch = actions.getFeedItemsByCategoryPaginated({ category: currentSel.key, cursor });
+              fetch = actions.getFeedItemsByCategoryPaginated({
+                category: currentSel.key,
+                cursor,
+              });
               break;
             case "feed":
-              fetch = actions.getFeedItemsByFeedIdPaginated({ feedId: currentSel.id, cursor });
+              fetch = actions.getFeedItemsByFeedIdPaginated({
+                feedId: currentSel.id,
+                cursor,
+              });
               break;
           }
 
@@ -122,6 +143,15 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
     switch (selected.kind) {
       case "all":
         actions.markAllAsRead().then(({ data, error }) => {
+          if (data && !error) {
+            setFeedItems((prev) =>
+              prev.map((feedItem) => ({ ...feedItem, read: true })),
+            );
+          }
+        });
+        break;
+      case "bookmarked":
+        actions.setAllBookmarkedAsRead().then(({ data, error }) => {
           if (data && !error) {
             setFeedItems((prev) =>
               prev.map((feedItem) => ({ ...feedItem, read: true })),
@@ -160,14 +190,16 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
   const header =
     selected.kind === "all"
       ? "All Feeds"
-      : selected.kind === "category"
-        ? mapCategoriesToVisuals[selected.key]
-        : selected.feedTitle;
+      : selected.kind === "bookmarked"
+        ? "Bookmarked"
+        : selected.kind === "category"
+          ? mapCategoriesToVisuals[selected.key]
+          : selected.feedTitle;
 
   return (
     <div className="p-3 flex flex-col h-full gap-3">
       <div className="flex flex-row justify-between px-2">
-        <h2 className=" font-semibold">{header}</h2>
+        <h2 className=" font-semibold truncate">{header}</h2>
         <button
           type="button"
           className="text-primary hover:text-primary-hover hover:underline"
@@ -181,38 +213,94 @@ export const MiddleBar = ({ initialItems, initialCursor }: Props) => {
         style={{ overflowAnchor: "none" }}
         ref={scrollAreaRef}
       >
-        {feedItems.map((item) => (
-          <li
-            key={item.itemId}
-            className={`${cls(selectedItemId === item.itemId, item.read)} rounded p-2`}
-            onClick={ () => {
-              setSelectedItemId(item.itemId);
-
-              actions.markItemAsRead({ itemId: item.itemId }).then(() => {
-                setFeedItems((prev) =>
-                  prev.map((feedItem) =>
-                    feedItem.itemId === item.itemId
-                      ? { ...feedItem, read: true }
-                      : feedItem,
-                  ),
-                );
-              });
-              document.dispatchEvent(
-                new CustomEvent("feed-item-selected", {
-                  detail: { itemId: item.itemId, title: item.title },
-                }),
-              );
-            }}
-          >
-            <h4 className="font-medium">{item.title}</h4>
-            <p className="text-sm text-gray-600">
-              {item.pubDate.toLocaleString()}
-            </p>
+        {feedItems.length === 0 ? (
+          <li className="flex-1 flex items-center justify-center">
+            <h1>No items found</h1>
           </li>
-        ))}
+        ) : (
+          feedItems.map((item) => (
+            <li
+              key={item.itemId}
+              className={`${cls(selectedItemId === item.itemId, item.read)} rounded`}
+            >
+              <div className="flex flex-row">
+                <div
+                  className="flex-4 p-2 min-w-0"
+                  onClick={() => {
+                    setSelectedItemId(item.itemId);
+
+                    actions.markItemAsRead({ itemId: item.itemId }).then(() => {
+                      setFeedItems((prev) =>
+                        prev.map((feedItem) =>
+                          feedItem.itemId === item.itemId
+                            ? { ...feedItem, read: true }
+                            : feedItem,
+                        ),
+                      );
+                    });
+                    document.dispatchEvent(
+                      new CustomEvent("feed-item-selected", {
+                        detail: { itemId: item.itemId, title: item.title },
+                      }),
+                    );
+                  }}
+                >
+                  <h4 className="font-medium truncate text-nowrap">
+                    {item.title}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {item.pubDate.toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    !item.bookmarkedAt
+                      ? actions
+                          .setBookmark({ itemId: item.itemId })
+                          .then(() => {
+                            setFeedItems((prev) =>
+                              prev.map((feedItem) =>
+                                feedItem.itemId === item.itemId
+                                  ? {
+                                      ...feedItem,
+                                      bookmarkedAt: new Date(),
+                                    }
+                                  : feedItem,
+                              ),
+                            );
+                          })
+                      : actions
+                          .removeBookmark({ itemId: item.itemId })
+                          .then(() => {
+                            setFeedItems((prev) =>
+                              prev.map((feedItem) =>
+                                feedItem.itemId === item.itemId
+                                  ? {
+                                      ...feedItem,
+                                      bookmarkedAt: null,
+                                    }
+                                  : feedItem,
+                              ),
+                            );
+                          });
+                  }}
+                >
+                  <Bookmark
+                    size={32}
+                    fill={item.bookmarkedAt ? "#FFD700" : "none"}
+                    className="hover:bg-gray-400/30 hover:rounded-xl p-1"
+                  />
+                </button>
+              </div>
+            </li>
+          ))
+        )}
         {cursor && (
           <li ref={sentinelRef} className="flex justify-center py-4">
-            {loading && <span className="text-sm text-gray-500">Loading...</span>}
+            {loading && (
+              <span className="text-sm text-gray-500">Loading...</span>
+            )}
           </li>
         )}
       </ul>

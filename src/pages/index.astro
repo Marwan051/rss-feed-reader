@@ -8,45 +8,47 @@ import { FeedViewer } from "../components/FeedViewer";
 import { Rss } from "@lucide/astro";
 
 const feeds = getFeeds();
-const { items: initialItems, nextCursor: initialCursor } = getAllFeedItemsPaginated();
+const { items: initialItems, nextCursor: initialCursor } =
+  getAllFeedItemsPaginated();
 ---
 
 <Layout>
-  <div class="flex flex-row justify-between bg-surface">
-    <div
-      class="text-nowrap flex flex-row justify-center items-center text-center"
-    >
-      <h1 class="flex items-center gap-2 ml-2">
-        <Rss class="inline size-8" /> RSS feed Reader
-      </h1>
-    </div>
-    <div class="w-full flex justify-end gap-4 p-3 items-center">
-      <AddFeedButton />
-      <button class="primary-btn p-4" id="update-feeds-btn">
-        Update feeds
-      </button>
-    </div>
-  </div>
   <section
     class="grid grid-cols-[3fr_4fr_6fr] grid-rows-1 flex-1 min-h-0 w-full"
   >
     <!-- Feed/Category chooser -->
     <section class="h-full bg-bg" id="side-bar">
+      <div class="flex flex-row justify-between bg-surface">
+        <div
+          class="text-nowrap flex flex-row justify-center items-center text-center"
+        >
+          <h1 class="flex items-center gap-2 ml-2 text-2xl font-bold">
+            <Rss class="inline size-8" /> RSS feed Reader
+          </h1>
+        </div>
+        <div class="w-full flex justify-end gap-4 p-3 items-center">
+          <AddFeedButton />
+          <button class="primary-btn p-4 text-nowrap" id="update-feeds-btn">
+            Update feeds
+          </button>
+        </div>
+      </div>
       <Sidebar initialFeeds={feeds} client:load />
     </section>
 
     <!-- Feed item chooser -->
-    <section class="h-full bg-surface-alt">
+    <section class="h-full bg-surface-alt min-w-0">
       <MiddleBar
-          initialItems={initialItems.map((item) => ({
-            itemId: item.itemId,
-            title: item.title ?? "No title",
-            pubDate: new Date(item.pubDate!),
-            read: item.read,
-          }))}
-          initialCursor={initialCursor}
-          client:load
-        />
+        initialItems={initialItems.map((item) => ({
+          itemId: item.itemId,
+          title: item.title ?? "No title",
+          bookmarkedAt: item.bookmarkedAt ? new Date(item.bookmarkedAt) : null,
+          pubDate: new Date(item.pubDate!),
+          read: item.read,
+        }))}
+        initialCursor={initialCursor}
+        client:load
+      />
     </section>
 
     <!-- Feed item viewer -->
